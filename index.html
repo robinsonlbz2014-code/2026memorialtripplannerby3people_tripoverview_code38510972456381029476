@@ -1,286 +1,761 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trip Plan Showcase</title>
-    <style>
-        :root {
-            --accent: #0284c7;
-            --dark: #0f172a;
-            --muted: #475569;
-            --bg: #f8fafc;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: system-ui, sans-serif;
-        }
-
-        body {
-            background: var(--bg);
-            color: var(--dark);
-            line-height: 1.6;
-        }
-
-        .hero {
-            background: linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.8)), var(--hero-img, #1e293b) center/cover;
-            color: white;
-            padding: 80px 20px;
-            text-align: center;
-        }
-
-        .hero h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-
-        .hero p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .stats {
-            display: flex;
-            justify-content: space-around;
-            max-width: 800px;
-            margin: -30px auto 40px;
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-item .num {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--accent);
-        }
-
-        .stat-item .label {
-            font-size: 0.8rem;
-            color: var(--muted);
-            text-transform: uppercase;
-        }
-
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 30px;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 20px;
-        }
-
-        .timeline {
-            border-left: 3px solid #cbd5e1;
-            padding-left: 20px;
-            margin-left: 10px;
-        }
-
-        .timeline-item {
-            position: relative;
-            margin-bottom: 30px;
-        }
-
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -28px;
-            top: 5px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--accent);
-            border: 3px solid white;
-        }
-
-        .time {
-            font-size: 0.85rem;
-            font-weight: bold;
-            color: var(--accent);
-            text-transform: uppercase;
-        }
-
-        .timeline-card {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .timeline-card h4 {
-            margin-bottom: 5px;
-        }
-
-        .timeline-card p {
-            font-size: 0.9rem;
-            color: var(--muted);
-        }
-
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .sidebar-panel {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-        }
-
-        .sidebar-panel h3 {
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-        }
-
-        .gallery {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .gallery img {
-            width: 100%;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 6px;
-        }
-
-        .tag-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            list-style: none;
-        }
-
-        .tag {
-            background: #e0f2fe;
-            color: var(--accent);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Plan your itinerary, track your budget, and map your trip locations.">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Trip Planner</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root { color-scheme: light; --blue: #245cdb; --ink: #192b43; --muted: #56657a; --line: #dce3ef; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; background: #f2f5fb; color: var(--ink); font: 16px/1.5 system-ui, sans-serif; }
+    header { background: #14243c; color: white; padding: 30px max(20px, calc((100% - 1160px) / 2)); }
+    header h1 { margin: 0 0 16px; font-size: 1.6rem; }
+    header label { max-width: 480px; }
+    header input { background: #203651; color: white; border-color: #53627a; font-size: 1.2rem; }
+    main { max-width: 1200px; margin: auto; padding: 24px 20px 50px; }
+    h2 { margin: 0 0 18px; font-size: 1.25rem; }
+    h3, p { margin: 0 0 10px; }
+    h3 { font-size: 1.05rem; }
+    a { color: var(--blue); }
+    button, input, select, textarea { font: inherit; }
+    button { border: 0; border-radius: 9px; padding: 11px 16px; background: var(--blue); color: white; cursor: pointer; }
+    button:hover { filter: brightness(.94); }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    :focus-visible { outline: 3px solid #ed9b24; outline-offset: 3px; }
+    input, select, textarea { width: 100%; min-width: 0; border: 1px solid #b6c2d3; border-radius: 8px; padding: 10px 12px; background: white; color: var(--ink); }
+    textarea { resize: vertical; min-height: 86px; }
+    label { display: grid; gap: 6px; margin-bottom: 15px; font-size: .9rem; font-weight: 600; }
+    .tabs { display: flex; gap: 6px; margin-bottom: 24px; padding: 5px; background: #e2e8f3; border-radius: 12px; }
+    .tabs button { flex: 1; background: transparent; color: var(--muted); font-weight: 700; }
+    .tabs button[aria-selected="true"] { background: white; color: var(--blue); box-shadow: 0 2px 8px #192b4312; }
+    .layout { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 24px; align-items: start; }
+    .card { padding: 24px; background: white; border: 1px solid var(--line); border-radius: 16px; min-width: 0; }
+    .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .row > label { flex: 1; min-width: 120px; }
+    .heading { display: flex; gap: 12px; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .heading h2 { margin: 0; }
+    .secondary { background: #eaf0fc; color: #204fad; }
+    .danger { background: #fff0ee; color: #a62424; }
+    .muted, .empty { color: var(--muted); }
+    .small { font-size: .9rem; }
+    .empty { padding: 28px 0; text-align: center; }
+    .day { margin: 24px 0 10px; font-size: .95rem; color: #234c9c; }
+    .day:first-child { margin-top: 0; }
+    .activity { padding: 16px 0 16px 18px; border-left: 3px solid #bdd0fa; border-bottom: 1px solid var(--line); }
+    .activity p, .expense p { overflow-wrap: anywhere; }
+    .activity h3, .expense strong { overflow-wrap: anywhere; }
+    .notes { white-space: pre-wrap; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .actions button { padding: 7px 11px; font-size: .9rem; }
+    .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .stat { background: #f2f5fb; border-radius: 12px; padding: 15px; min-width: 0; }
+    .stat span { display: block; color: var(--muted); font-size: .9rem; }
+    .stat strong { display: block; font-size: 1.3rem; overflow-wrap: anywhere; }
+    .over { color: #b42318; }
+    progress { width: 100%; height: 12px; accent-color: var(--blue); }
+    .expense { display: flex; justify-content: space-between; gap: 16px; padding: 18px 0; border-top: 1px solid var(--line); }
+    .expense > div { min-width: 0; }
+    .expense .amount { white-space: nowrap; font-weight: 700; }
+    #map { height: 510px; border-radius: 12px; background: #e6edf5; z-index: 0; }
+    #mapStatus, #searchStatus { margin: 12px 0; }
+    #searchResults button { display: block; width: 100%; margin-top: 10px; text-align: left; overflow-wrap: anywhere; }
+    #saveStatus { margin: 20px 0 0; }
+    @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } #map { height: 400px; } }
+    @media (max-width: 480px) { .card { padding: 18px; } main { padding: 18px 12px; } .stats { grid-template-columns: 1fr; } .expense { flex-wrap: wrap; } }
+  </style>
 </head>
 <body>
+  <header>
+    <h1>Trip planner</h1>
+    <label>Trip name <input id="tripName" maxlength="100" value="My next trip"></label>
+  </header>
+  <main>
+    <nav class="tabs" role="tablist" aria-label="Trip planner sections">
+      <button id="tab-itinerary" role="tab" aria-selected="true" aria-controls="itinerary">Itinerary</button>
+      <button id="tab-budget" role="tab" aria-selected="false" aria-controls="budget" tabindex="-1">Budget</button>
+      <button id="tab-mapPanel" role="tab" aria-selected="false" aria-controls="mapPanel" tabindex="-1">Map</button>
+    </nav>
 
-    <!-- Target elements populated by JavaScript -->
-    <header class="hero" id="heroSection">
-        <h1 id="tripTitle"></h1>
-        <p id="tripDesc"></p>
-    </header>
+    <section id="itinerary" role="tabpanel" aria-labelledby="tab-itinerary">
+      <div class="layout">
+        <form id="activityForm" class="card">
+          <h2 id="activityHeading">Add an activity</h2>
+          <input id="activityId" type="hidden">
+          <div class="row">
+            <label>Date <input id="activityDate" type="date" required></label>
+            <label>Time <input id="activityTime" type="time"></label>
+          </div>
+          <label>Activity <input id="activityTitle" maxlength="150" placeholder="Visit the art museum" required></label>
+          <label>Location <input id="activityLocation" maxlength="250" placeholder="Place or address, city, country"></label>
+          <label>Notes <textarea id="activityNotes" maxlength="2000" placeholder="Tickets, reservations, things to remember..."></textarea></label>
+          <div class="row">
+            <button type="submit" id="activitySubmit">Add activity</button>
+            <button type="button" id="cancelActivity" class="secondary" hidden>Cancel</button>
+          </div>
+        </form>
+        <div class="card">
+          <div class="heading"><h2>Your itinerary</h2><span id="activityCount" class="muted small"></span></div>
+          <div id="activityList"></div>
+        </div>
+      </div>
+    </section>
 
-    <section class="stats" id="statsDashboard"></section>
+    <section id="budget" role="tabpanel" aria-labelledby="tab-budget" hidden>
+      <div class="layout">
+        <div>
+          <form id="budgetForm" class="card" style="margin-bottom:24px">
+            <h2>Trip budget</h2>
+            <label>Budget limit <input id="budgetLimit" type="number" min="0" max="100000000" step="0.01" required></label>
+            <label>Currency
+              <select id="currency"><option>USD</option><option>EUR</option><option>GBP</option><option>CAD</option><option>AUD</option></select>
+            </label>
+            <p class="muted small">Currency changes labels only; it does not convert amounts.</p>
+            <button type="submit">Save budget</button>
+          </form>
+          <form id="expenseForm" class="card">
+            <h2 id="expenseHeading">Add an expense</h2>
+            <input id="expenseId" type="hidden">
+            <label>Description <input id="expenseTitle" maxlength="150" placeholder="Hotel reservation" required></label>
+            <label>Category
+              <select id="expenseCategory"><option>Accommodation</option><option>Transport</option><option>Food</option><option>Activities</option><option>Shopping</option><option>Other</option></select>
+            </label>
+            <label>Amount <input id="expenseAmount" type="number" min="0.01" max="100000000" step="0.01" required></label>
+            <div class="row">
+              <button type="submit" id="expenseSubmit">Add expense</button>
+              <button type="button" id="cancelExpense" class="secondary" hidden>Cancel</button>
+            </div>
+          </form>
+        </div>
+        <div class="card">
+          <h2>Budget overview</h2>
+          <div class="stats">
+            <div class="stat"><span>Budget</span><strong id="limitTotal"></strong></div>
+            <div class="stat"><span>Expenses</span><strong id="spentTotal"></strong></div>
+            <div class="stat"><span id="remainingLabel">Remaining</span><strong id="remainingTotal"></strong></div>
+          </div>
+          <progress id="budgetProgress" max="100" value="0" aria-label="Budget used"></progress>
+          <p id="budgetMessage" class="muted small"></p>
+          <div id="expenseList"></div>
+        </div>
+      </div>
+    </section>
 
-    <main class="container">
-        <section>
-            <h2 class="section-title">📅 Itinerary</h2>
-            <div class="timeline" id="itineraryTimeline"></div>
-        </section>
-    </main>
+    <section id="mapPanel" role="tabpanel" aria-labelledby="tab-mapPanel" hidden>
+      <div class="layout">
+        <div class="card">
+          <h2>Find your locations</h2>
+          <p class="muted small">Add locations to your itinerary, then search and choose the correct match to pin each stop.</p>
+          <form id="searchForm">
+            <label>Itinerary stop <select id="mapActivity" required></select></label>
+            <label>Place or address <input id="mapQuery" maxlength="250" required></label>
+            <div class="row">
+              <button id="searchButton" type="submit">Search</button>
+              <button id="viewPin" class="secondary" type="button">View pin</button>
+            </div>
+          </form>
+          <p id="searchStatus" class="small" role="status"></p>
+          <div id="searchResults"></div>
+          <p class="muted small" style="margin-top:16px">Search: <a href="https://photon.komoot.io/" target="_blank" rel="noopener">Photon</a> · Data: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></p>
+        </div>
+        <div class="card">
+          <div class="heading"><h2>Trip map</h2><button id="fitMap" class="secondary" type="button">Show all pins</button></div>
+          <p id="pinCount" class="muted small"></p>
+          <p id="mapStatus" class="small" role="status"></p>
+          <div id="map" aria-label="Map of your trip locations"></div>
+        </div>
+      </div>
+    </section>
+    <p id="saveStatus" class="muted small" role="status">Changes save in this browser.</p>
+    <noscript>This trip planner needs JavaScript enabled.</noscript>
+  </main>
 
-    <script>
-        // EDIT YOUR TRIP DATA DIRECTLY IN THIS CONFIGURATION OBJECT BELOW:
-        const TRIP_CONFIG = {
-            title: "Channel Islands National Park Road Trip",
-            description: "A 3-day adventure through the Channel Islands.",
-            heroImage: "https://unsplash.com",
-            accentColor: "#0d9488", // Teal hex code
-            stats: [
-                { label: "Duration", value: "4 Days" },
-                { label: "Accommodation", value: "$1123.62" },
-                { label: "Driving Distance", value: "~650 Miles" }
-            ],
-            itinerary: [
-                { 
-                    time: "Day 1 · Afternoon", 
-                    title: "Drive", 
-                    desc: "Drive all the way to Pismo Beach, CA 93449." 
-                },
-                { 
-                    time: "Day 2 · Morning", 
-                    title: "Driving", 
-                    desc: "Drive all the way to Ventura, CA 93001." 
-                },
-                { 
-                    time: "Day 2 · Afternoon", 
-                    title: "Hiking", 
-                    desc: "Take the boat ride at Ventura Marina and hike on Santa Cruz Island at Scorpion Anchorage." 
-                },
-                { 
-                    time: "Day 3 · Morning & Partial Afternoon", 
-                    title: "Hiking", 
-                    desc: "Take the boat ride at Ventura Marina and hike on Santa Cruz Island at Prisoners Harbor. Return at 3PM." 
-                },
-                { 
-                    time: "Day 3 · Evening", 
-                    title: "Chilling", 
-                    desc: "Chill at the hotel or explore in downtown Ventura. The hotel has a fitness center as well as an outdoor swimming pool." 
-                },
-                { 
-                    time: "Day 4 · All Day", 
-                    title: "Driving", 
-                    desc: "Drive all the way back to San Jose, CA 95132." 
-                }
-            ]
-        };
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    "use strict";
+    const $ = id => document.getElementById(id);
+    const KEY = "trip-planner.single-file.v1";
 
-        // RENDER ENGINE (Do not modify unless you want to change layout mechanics)
-        function renderTrip() {
-            document.title = TRIP_CONFIG.title;
-            document.documentElement.style.setProperty('--accent', TRIP_CONFIG.accentColor);
-            document.getElementById('heroSection').style.setProperty('--hero-img', `url('${TRIP_CONFIG.heroImage}')`);
-            document.getElementById('tripTitle').innerText = TRIP_CONFIG.title;
-            document.getElementById('tripDesc').innerText = TRIP_CONFIG.description;
+    // Photon's demo endpoint is for modest use. Use your own provider for a busy site.
+    const GEOCODER = "https://photon.komoot.io/api/";
 
-            // Render Stats
-            document.getElementById('statsDashboard').innerHTML = TRIP_CONFIG.stats.map(s => `
-                <div class="stat-item">
-                    <div class="num">${s.value}</div>
-                    <div class="label">${s.label}</div>
-                </div>
-            `).join('');
+    const escapeHTML = value => String(value).replace(/[&<>"']/g, char => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[char]);
 
-            // Render Itinerary
-            document.getElementById('itineraryTimeline').innerHTML = TRIP_CONFIG.itinerary.map(item => `
-                <div class="timeline-item">
-                    <span class="time">${item.time}</span>
-                    <div class="timeline-card">
-                        <h4>${item.title}</h4>
-                        <p>${item.desc}</p>
-                    </div>
-                </div>
-            `).join('');
+    const today = () => {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    };
 
-            // Render Gallery
-            // Render Tags
+    const uid = () => globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    let state = {
+      version: 1,
+      name: "My next trip",
+      currency: "USD",
+      budget: 0,
+      activities: [],
+      expenses: []
+    };
+
+    try {
+      const saved = JSON.parse(localStorage.getItem(KEY));
+      if (saved) {
+        if (saved.version !== 1 || !Array.isArray(saved.activities) || !Array.isArray(saved.expenses) ||
+            !Number.isSafeInteger(saved.budget) || saved.budget < 0 ||
+            !["USD", "EUR", "GBP", "CAD", "AUD"].includes(saved.currency)) {
+          throw new Error("Invalid saved data");
+        }
+        state = saved;
+      }
+    } catch {
+      $("saveStatus").textContent = "Saved data is unavailable. Changes will try to save again.";
+    }
+
+    let map, markers, editingActivity = "", editingExpense = "";
+    let controller, searchVersion = 0, lastSearch = 0;
+    const markerById = new Map(), searchCache = new Map();
+
+    const orderedActivities = () => [...state.activities].sort((a, b) =>
+      a.date.localeCompare(b.date) ||
+      (a.time || "99:99").localeCompare(b.time || "99:99")
+    );
+
+    const money = cents => new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: state.currency
+    }).format(cents / 100);
+
+    const cents = input => Math.round(Number(input.value) * 100);
+
+    const validPin = pin =>
+      pin &&
+      Number.isFinite(pin.lat) &&
+      Number.isFinite(pin.lng) &&
+      Math.abs(pin.lat) <= 90 &&
+      Math.abs(pin.lng) <= 180;
+
+    function save() {
+      try {
+        localStorage.setItem(KEY, JSON.stringify(state));
+        $("saveStatus").textContent = "Saved in this browser. Clearing browser data removes this trip.";
+      } catch {
+        $("saveStatus").textContent = "Saving is blocked or storage is full. Changes are only in this open tab.";
+      }
+    }
+
+    function actionButtons(kind, id) {
+      return `
+        <div class="actions">
+          <button class="secondary" data-action="edit-${kind}" data-id="${escapeHTML(id)}">Edit</button>
+          <button class="danger" data-action="delete-${kind}" data-id="${escapeHTML(id)}">Delete</button>
+        </div>`;
+    }
+
+    function renderActivities() {
+      const items = orderedActivities();
+      $("activityCount").textContent =
+        `${items.length} ${items.length === 1 ? "activity" : "activities"}`;
+
+      let previousDate = "";
+
+      $("activityList").innerHTML = items.map(item => {
+        let day = "";
+
+        if (item.date !== previousDate) {
+          day = `<h3 class="day">${
+            escapeHTML(
+              new Date(item.date + "T12:00:00").toLocaleDateString(undefined, {
+                weekday: "long",
+                month: "short",
+                day: "numeric",
+                year: "numeric"
+              })
+            )
+          }</h3>`;
+          previousDate = item.date;
         }
 
-        // Initialize application build on load
-        window.addEventListener('DOMContentLoaded', renderTrip);
-    </script>
+        return `${day}
+          <article class="activity">
+            <p class="muted small">${escapeHTML(item.time || "Any time")}</p>
+            <h3>${escapeHTML(item.title)}</h3>
+            ${item.location ? `
+              <p>${escapeHTML(item.location)}</p>
+              <button class="secondary" data-action="map" data-id="${escapeHTML(item.id)}">
+                ${validPin(item.pin) ? "View on map" : "Find on map"}
+              </button>` : ""}
+            ${item.notes ? `<p class="notes muted small">${escapeHTML(item.notes)}</p>` : ""}
+            ${actionButtons("activity", item.id)}
+          </article>`;
+      }).join("") || '<p class="empty">Your trip starts here. Add your first activity.</p>';
+    }
+
+    function renderBudget() {
+      const spent = state.expenses.reduce((sum, item) => sum + item.cents, 0);
+      const remaining = state.budget - spent;
+
+      $("limitTotal").textContent = money(state.budget);
+      $("spentTotal").textContent = money(spent);
+      $("remainingLabel").textContent = remaining < 0 ? "Over budget" : "Remaining";
+      $("remainingTotal").textContent = money(Math.abs(remaining));
+      $("remainingTotal").classList.toggle("over", remaining < 0);
+
+      $("budgetProgress").value = state.budget
+        ? Math.min(100, spent / state.budget * 100)
+        : 0;
+
+      $("budgetMessage").textContent = state.budget
+        ? `${Math.round(spent / state.budget * 100)}% of your budget used`
+        : "Set a budget limit to track your spending.";
+
+      $("expenseList").innerHTML = [...state.expenses].reverse().map(item => `
+        <article class="expense">
+          <div>
+            <strong>${escapeHTML(item.title)}</strong>
+            <p class="muted small">${escapeHTML(item.category)}</p>
+            ${actionButtons("expense", item.id)}
+          </div>
+          <span class="amount">${escapeHTML(money(item.cents))}</span>
+        </article>
+      `).join("") || '<p class="empty">No expenses yet.</p>';
+    }
+
+    function cancelSearch() {
+      searchVersion++;
+      controller?.abort();
+      $("searchResults").replaceChildren();
+      $("searchStatus").textContent = "";
+      $("searchButton").disabled = !$("mapActivity").value;
+    }
+
+    function syncQuery() {
+      cancelSearch();
+      const item = state.activities.find(a => a.id === $("mapActivity").value);
+      $("mapQuery").value = item?.location || "";
+      $("viewPin").disabled = !validPin(item?.pin);
+    }
+
+    function renderMapChoices() {
+      const selected = $("mapActivity").value;
+      const items = orderedActivities().filter(a => a.location);
+
+      $("mapActivity").innerHTML = items.map(a => `
+        <option value="${escapeHTML(a.id)}">
+          ${escapeHTML(a.title)}${validPin(a.pin) ? " — pinned" : ""}
+        </option>
+      `).join("") || '<option value="">Add an itinerary location first</option>';
+
+      if (items.some(a => a.id === selected)) {
+        $("mapActivity").value = selected;
+      }
+
+      if ($("mapActivity").value !== selected) syncQuery();
+
+      $("searchButton").disabled = !items.length;
+      $("viewPin").disabled = !validPin(
+        state.activities.find(a => a.id === $("mapActivity").value)?.pin
+      );
+
+      $("pinCount").textContent =
+        `${items.filter(a => validPin(a.pin)).length} of ${items.length} itinerary locations pinned`;
+    }
+
+    function updateMarkers() {
+      if (!map) return;
+
+      markers.clearLayers();
+      markerById.clear();
+
+      for (const item of orderedActivities().filter(a => validPin(a.pin))) {
+        const popup = document.createElement("div");
+        const title = document.createElement("strong");
+        const address = document.createElement("p");
+
+        title.textContent = item.title;
+        address.textContent = item.pin.label;
+        popup.append(title, address);
+
+        const marker = L.marker(
+          [item.pin.lat, item.pin.lng],
+          { title: item.title }
+        ).bindPopup(popup).addTo(markers);
+
+        markerById.set(item.id, marker);
+      }
+    }
+
+    function fitPins() {
+      if (map && markers.getLayers().length) {
+        map.fitBounds(markers.getBounds(), {
+          padding: [35, 35],
+          maxZoom: 14
+        });
+      }
+    }
+
+    function initMap() {
+      if (map) return;
+
+      if (location.protocol === "file:") {
+        $("mapStatus").textContent =
+          "For maps, open this page through GitHub Pages or a local web server.";
+        return;
+      }
+
+      if (!window.L) {
+        $("mapStatus").textContent =
+          "The map library did not load. Check your internet connection and reload.";
+        return;
+      }
+
+      map = L.map("map").setView([20, 0], 2);
+
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).on("tileerror", () => {
+        $("mapStatus").textContent =
+          "Some map tiles could not load. Check your connection or try again later.";
+      }).addTo(map);
+
+      markers = L.featureGroup().addTo(map);
+      updateMarkers();
+    }
+
+    const tabs = [...document.querySelectorAll('[role="tab"]')];
+
+    function showTab(id) {
+      tabs.forEach(tab => {
+        const active = tab.getAttribute("aria-controls") === id;
+        tab.setAttribute("aria-selected", String(active));
+        tab.tabIndex = active ? 0 : -1;
+        $(tab.getAttribute("aria-controls")).hidden = !active;
+      });
+
+      if (id === "mapPanel") {
+        requestAnimationFrame(() => {
+          initMap();
+          map?.invalidateSize();
+          fitPins();
+        });
+      }
+    }
+
+    tabs.forEach((tab, index) => {
+      tab.onclick = () => showTab(tab.getAttribute("aria-controls"));
+
+      tab.onkeydown = event => {
+        const next = {
+          ArrowRight: (index + 1) % 3,
+          ArrowLeft: (index + 2) % 3,
+          Home: 0,
+          End: 2
+        }[event.key];
+
+        if (next === undefined) return;
+        event.preventDefault();
+        tabs[next].focus();
+        tabs[next].click();
+      };
+    });
+
+    function resetActivity() {
+      editingActivity = "";
+      $("activityForm").reset();
+      $("activityDate").value = today();
+      $("activityHeading").textContent = "Add an activity";
+      $("activitySubmit").textContent = "Add activity";
+      $("cancelActivity").hidden = true;
+    }
+
+    function resetExpense() {
+      editingExpense = "";
+      $("expenseForm").reset();
+      $("expenseHeading").textContent = "Add an expense";
+      $("expenseSubmit").textContent = "Add expense";
+      $("cancelExpense").hidden = true;
+    }
+
+    $("tripName").oninput = () => {
+      state.name = $("tripName").value;
+      save();
+    };
+
+    $("cancelActivity").onclick = resetActivity;
+    $("cancelExpense").onclick = resetExpense;
+
+    $("activityForm").onsubmit = event => {
+      event.preventDefault();
+
+      const title = $("activityTitle").value.trim();
+      if (!title) {
+        $("activityTitle").focus();
+        return;
+      }
+
+      const old = state.activities.find(a => a.id === editingActivity);
+      const item = {
+        id: editingActivity || uid(),
+        title,
+        date: $("activityDate").value,
+        time: $("activityTime").value,
+        location: $("activityLocation").value.trim(),
+        notes: $("activityNotes").value.trim(),
+        pin: null
+      };
+
+      if (old?.location === item.location) item.pin = old.pin;
+
+      state.activities = old
+        ? state.activities.map(a => a.id === item.id ? item : a)
+        : [...state.activities, item];
+
+      cancelSearch();
+      save();
+      renderActivities();
+      renderMapChoices();
+      syncQuery();
+      updateMarkers();
+      resetActivity();
+    };
+
+    $("budgetForm").onsubmit = event => {
+      event.preventDefault();
+      state.budget = cents($("budgetLimit"));
+      state.currency = $("currency").value;
+      save();
+      renderBudget();
+    };
+
+    $("expenseForm").onsubmit = event => {
+      event.preventDefault();
+
+      const title = $("expenseTitle").value.trim();
+      if (!title) {
+        $("expenseTitle").focus();
+        return;
+      }
+
+      const item = {
+        id: editingExpense || uid(),
+        title,
+        category: $("expenseCategory").value,
+        cents: cents($("expenseAmount"))
+      };
+
+      state.expenses = editingExpense
+        ? state.expenses.map(a => a.id === item.id ? item : a)
+        : [...state.expenses, item];
+
+      save();
+      renderBudget();
+      resetExpense();
+    };
+
+    function viewPin(id) {
+      const marker = markerById.get(id);
+      if (marker && map) {
+        map.setView(marker.getLatLng(), 14);
+        marker.openPopup();
+      }
+    }
+
+    document.addEventListener("click", event => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+
+      const { action, id } = button.dataset;
+      const activity = state.activities.find(a => a.id === id);
+      const expense = state.expenses.find(a => a.id === id);
+
+      if (action === "edit-activity" && activity) {
+        editingActivity = id;
+
+        for (const field of ["Date", "Time", "Title", "Location", "Notes"]) {
+          $("activity" + field).value = activity[field.toLowerCase()];
+        }
+
+        $("activityHeading").textContent = "Edit activity";
+        $("activitySubmit").textContent = "Save changes";
+        $("cancelActivity").hidden = false;
+        $("activityTitle").focus();
+
+      } else if (action === "delete-activity") {
+        state.activities = state.activities.filter(a => a.id !== id);
+        if (editingActivity === id) resetActivity();
+
+        cancelSearch();
+        save();
+        renderActivities();
+        renderMapChoices();
+        updateMarkers();
+
+      } else if (action === "edit-expense" && expense) {
+        editingExpense = id;
+        $("expenseTitle").value = expense.title;
+        $("expenseCategory").value = expense.category;
+        $("expenseAmount").value = (expense.cents / 100).toFixed(2);
+        $("expenseHeading").textContent = "Edit expense";
+        $("expenseSubmit").textContent = "Save changes";
+        $("cancelExpense").hidden = false;
+        $("expenseTitle").focus();
+
+      } else if (action === "delete-expense") {
+        state.expenses = state.expenses.filter(a => a.id !== id);
+        if (editingExpense === id) resetExpense();
+
+        save();
+        renderBudget();
+
+      } else if (action === "map" && activity) {
+        showTab("mapPanel");
+        $("mapActivity").value = id;
+        syncQuery();
+
+        requestAnimationFrame(() => {
+          viewPin(id);
+          $("mapQuery").focus();
+        });
+      }
+    });
+
+    $("mapActivity").onchange = syncQuery;
+    $("mapQuery").oninput = cancelSearch;
+    $("fitMap").onclick = fitPins;
+    $("viewPin").onclick = () => viewPin($("mapActivity").value);
+
+    $("searchForm").onsubmit = async event => {
+      event.preventDefault();
+
+      const item = state.activities.find(a => a.id === $("mapActivity").value);
+      const query = $("mapQuery").value.trim();
+      if (!item || !query) return;
+
+      if (Date.now() - lastSearch < 1200) {
+        $("searchStatus").textContent = "Please wait a moment before searching again.";
+        return;
+      }
+
+      cancelSearch();
+      const version = searchVersion;
+
+      controller = new AbortController();
+      const activeController = controller;
+      const timeout = setTimeout(() => activeController.abort(), 15000);
+
+      $("searchButton").disabled = true;
+      $("searchStatus").textContent = "Searching...";
+
+      try {
+        const key = query.toLowerCase();
+        let features = searchCache.get(key);
+
+        if (!features) {
+          lastSearch = Date.now();
+
+          const url = new URL(GEOCODER);
+          url.search = new URLSearchParams({
+            q: query,
+            limit: "5",
+            lang: "en"
+          });
+
+          const response = await fetch(url, {
+            signal: activeController.signal
+          });
+
+          if (!response.ok) throw new Error("Search unavailable");
+
+          const data = await response.json();
+          if (!Array.isArray(data.features)) {
+            throw new Error("Invalid response");
+          }
+
+          features = data.features.filter(f =>
+            f.geometry?.type === "Point" &&
+            validPin({
+              lng: f.geometry.coordinates?.[0],
+              lat: f.geometry.coordinates?.[1]
+            })
+          );
+
+          searchCache.set(key, features);
+        }
+
+        if (version !== searchVersion) return;
+
+        $("searchStatus").textContent = features.length
+          ? "Choose a result to pin this stop:"
+          : "No matches. Try a full address with city and country.";
+
+        for (const feature of features) {
+          const p = feature.properties || {};
+          const [lng, lat] = feature.geometry.coordinates;
+
+          const label = [...new Set([
+            p.name,
+            [p.housenumber, p.street].filter(Boolean).join(" "),
+            p.city || p.town || p.village,
+            p.state,
+            p.country
+          ].filter(Boolean))].join(", ") || query;
+
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "secondary";
+          button.textContent = label;
+
+          button.onclick = () => {
+            const current = state.activities.find(a => a.id === item.id);
+
+            if (!current || current.location !== item.location) {
+              cancelSearch();
+              return;
+            }
+
+            current.pin = { lat, lng, label };
+
+            cancelSearch();
+            save();
+            renderActivities();
+            renderMapChoices();
+            updateMarkers();
+            viewPin(current.id);
+
+            $("searchStatus").textContent = "Location pinned.";
+          };
+
+          $("searchResults").append(button);
+        }
+      } catch (error) {
+        if (version === searchVersion) {
+          $("searchStatus").textContent = error.name === "AbortError"
+            ? "Search timed out. Please try again."
+            : "Search is unavailable. Check your connection or try again later.";
+        }
+      } finally {
+        clearTimeout(timeout);
+        if (version === searchVersion) {
+          $("searchButton").disabled = false;
+        }
+      }
+    };
+
+    $("tripName").value = state.name;
+    $("budgetLimit").value = (state.budget / 100).toFixed(2);
+    $("currency").value = state.currency;
+
+    resetActivity();
+    resetExpense();
+    renderActivities();
+    renderBudget();
+    renderMapChoices();
+    syncQuery();
+  </script>
 </body>
 </html>
